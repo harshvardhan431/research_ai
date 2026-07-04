@@ -1,0 +1,35 @@
+TITLE: Research Qualification Guide
+AUTHORS: Internal Chatbot Design Document
+VENUE: Research Matching Chatbot - Query Intake Logic
+YEAR: 2026
+
+PURPOSE
+This guide defines the questions used to qualify a user's research query before it is passed into the retrieval pipeline. The answers are combined into a structured query used for embedding and similarity search, rather than sending the raw, unqualified question straight to RAG or web search.
+
+QUESTION TOPIC
+What is the specific topic or problem you want to research?
+Purpose: identifies whether the user has a clear, defined research intent versus a vague or exploratory one.
+Options to present to the user: [Type your own topic] [I'm not sure yet, help me narrow it down] [Browse by research area].
+
+QUESTION DEPTH OF RESPONSE
+Are you looking for a quick answer or a detailed research-backed explanation?
+Purpose: classifies the required depth of response and filters out casual queries that do not need full retrieval.
+Options to present to the user: [Quick answer] [Detailed, research-backed explanation].
+
+QUESTION SOURCE MATERIAL
+Do you have any source material such as papers, PDFs, or links, or should the system retrieve information from scratch?
+Purpose: determines whether retrieval should be document-based, meaning RAG over user-provided material, or general knowledge-based, meaning web search or the existing paper and faculty collections.
+Options to present to the user: [I have papers/PDFs/links to share] [Search and retrieve from scratch] [Use both].
+
+QUESTION GOAL
+What is your goal with this research? For example, an assignment, a project, a publication, or general understanding.
+Purpose: provides context for tailoring the response and for prioritizing accuracy versus simplicity in the final answer.
+Options to present to the user: [Assignment] [Course project] [Publication or thesis] [General understanding].
+
+QUESTION ANALYSIS DEPTH
+How deep should the analysis go? A basic overview, a technical breakdown, or a critical analysis.
+Purpose: controls the level of complexity and technical detail included in the generated response.
+Options to present to the user: [Basic overview] [Technical breakdown] [Critical analysis, including gaps and limitations].
+
+USAGE
+These five questions are asked in sequence before the main retrieval pipeline runs. The user's answers are combined into a single structured query object with fields for topic, depth, source preference, goal, and analysis depth. This structured query, not the user's raw first message, is what gets embedded and used for similarity search against the papers and faculty collections, and is also what determines whether the router sends the request to RAG, to the web search tool, or answers directly.

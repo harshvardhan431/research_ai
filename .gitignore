@@ -1,0 +1,18 @@
+# Environment variables / secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+
+# ChromaDB local data (regenerate via ingestion scripts, don't commit)
+chroma_db/
+
+# Streamlit
+.streamlit/
+
+# OS/editor junk
+.DS_Store
+.vscode/

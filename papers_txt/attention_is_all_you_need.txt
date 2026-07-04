@@ -1,0 +1,31 @@
+TITLE: Attention Is All You Need
+AUTHORS: Vaswani, Shazeer, Parmar, Uszkoreit, Jones, Gomez, Kaiser, Polosukhin
+VENUE: NeurIPS (NIPS) 2017
+YEAR: 2017
+
+ABSTRACT
+The dominant sequence transduction models are based on complex recurrent or convolutional neural networks with an encoder and decoder, often connected via attention. This paper proposes the Transformer, a network architecture based solely on attention mechanisms, removing recurrence and convolutions entirely. On WMT 2014 English-to-German it reaches 28.4 BLEU, improving over prior best results by over 2 BLEU. On WMT 2014 English-to-French it sets a new single-model state-of-the-art of 41.0 BLEU after training for 3.5 days on eight GPUs, a small fraction of training costs of prior best models.
+
+PROBLEM
+RNNs, LSTMs and GRUs were the established state of the art for sequence modeling and translation. Their core limitation is sequential computation: hidden state h_t depends on h_(t-1), which precludes parallelization within training examples and becomes a bottleneck at longer sequence lengths due to memory constraints across batches. Prior work improved efficiency but did not remove the fundamental sequential constraint. Attention mechanisms had been used to model dependencies regardless of distance in input/output sequences, but almost always in conjunction with a recurrent network, not as a replacement for it.
+
+PROPOSED SOLUTION
+The Transformer eschews recurrence entirely and relies only on attention to draw global dependencies between input and output, enabling significantly more parallelization. It uses stacked self-attention and position-wise fully connected layers for both encoder and decoder. The encoder maps an input sequence to continuous representations; the decoder generates output one element at a time, auto-regressively consuming previous outputs. Encoder and decoder each use a stack of N=6 identical layers.
+
+CORE MECHANISM
+Scaled Dot-Product Attention maps a query and a set of key-value pairs to an output, computed as Attention(Q,K,V) = softmax(QK^T / sqrt(d_k)) V. The scaling by 1/sqrt(d_k) counteracts vanishing gradients that occur when dot products grow large in magnitude for large d_k. Multi-Head Attention linearly projects queries, keys and values h times with different learned projections, runs attention in parallel on each projection, then concatenates and projects the results. This lets the model jointly attend to information from different representation subspaces at different positions, something a single attention head cannot do because averaging inhibits it. The paper uses h=8 heads with d_k = d_v = d_model/h = 64.
+
+OTHER ARCHITECTURE COMPONENTS
+Each encoder/decoder layer also has a position-wise feed-forward network (two linear transforms with ReLU in between, applied identically per position). Residual connections wrap each sub-layer followed by layer normalization: LayerNorm(x + Sublayer(x)). Since the model has no recurrence or convolution, sinusoidal positional encodings are added to input embeddings so the model can use sequence order. The decoder additionally masks self-attention to prevent positions from attending to subsequent positions, preserving the auto-regressive property.
+
+WHY SELF-ATTENTION
+The paper compares self-attention, recurrent, and convolutional layers on computational complexity per layer, amount of parallelizable computation, and path length between long-range dependencies. Self-attention connects all positions with O(1) sequential operations versus O(n) for recurrence, and has constant maximum path length versus O(n) for recurrence and O(log_k(n)) for convolution. The tradeoff noted is per-layer complexity O(n^2 * d), which is worse than recurrence when sequence length n exceeds representation dimension d.
+
+TRAINING SETUP
+Trained on WMT 2014 English-German (4.5M sentence pairs, byte-pair encoding, ~37000 token shared vocabulary) and WMT 2014 English-French (36M sentences, 32000 word-piece vocabulary). Used 8 NVIDIA P100 GPUs; base model trained 100,000 steps (~12 hours), big model 300,000 steps (3.5 days). Optimizer: Adam with beta1=0.9, beta2=0.98, epsilon=1e-9, with a learning rate schedule that increases linearly for warmup_steps=4000 then decays proportional to inverse square root of step number. Regularization used residual dropout (rate 0.1 for base model) and label smoothing of 0.1.
+
+RESULTS
+The big Transformer achieves 28.4 BLEU on WMT 2014 English-to-German, beating the previous best (including ensembles) by over 2 BLEU, and 41.0 BLEU on English-to-French, a new single-model state-of-the-art at under one quarter the training cost of the prior best single model. Ablations showed single-head attention scores 0.9 BLEU worse than the best multi-head configuration, and quality also degrades with too many heads; reducing attention key size d_k hurts quality; bigger models and dropout both help.
+
+FUTURE WORK AND GAPS
+Explicitly stated future work: (1) extend the Transformer to modalities other than text, such as images, audio and video; (2) investigate local, restricted attention mechanisms to efficiently handle very large inputs and outputs, since full self-attention is O(n^2) in sequence length; (3) make generation less sequential, i.e. reduce the auto-regressive decoding bottleneck at inference time; (4) restricting self-attention to a neighborhood of size r would reduce path length behavior but was left for future investigation rather than implemented.

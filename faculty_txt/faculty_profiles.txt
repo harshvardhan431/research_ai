@@ -1,0 +1,114 @@
+FORMAT:
+Each profile contains NAME, DESIGNATION, and RESEARCH fields.
+Use this structure for retrieval.
+
+===PROFILE===
+NAME:sutapa roy rahmanan
+DESIGNATION: Senior Professor. PhD: Jadavpur University.
+RESEARCH: Nano-biomaterials for labeling and drug delivery, electroceramic nano powders, thermal interface materials for electronic packaging, thin films for optical and electronic applications, corrosion engineering, advanced heat transfer.
+
+===PROFILE===
+NAME: srinivas ramaswami
+DESIGNATION: Professor. PhD: University of London.
+RESEARCH: Process engineering and process intensification, techno-commercial challenges, cost-effective, energy-efficient, environment-friendly systems.
+
+===PROFILE===
+NAME: saroj s bala
+DESIGNATION: Professor. PhD: NIT Rourkela.
+RESEARCH: Adsorptive removal of heavy metals, metal extraction and purification, biogas production via anaerobic digestion, control engineering.
+
+===PROFILE===
+NAME: sampatrao manjara
+DESIGNATION: Professor. PhD: BITS Pilani.
+RESEARCH: Life cycle assessment of process plants, environmental management systems, separation processes, resource recovery from waste, rubber fillers.
+
+===PROFILE===
+NAME: manjuri kumari
+DESIGNATION: Associate Professor. PhD: BITS Pilani.
+RESEARCH: Copper and zinc complexes, DNA binding and cleavage, protein interaction, molecular docking, cytotoxicity, anticancer metal complexes.
+
+===PROFILE===
+NAME: SHARAD SONTAKKE
+DESIGNATION: Associate Professor. PhD: IISc Bangalore.
+RESEARCH: Water and wastewater treatment, metal-organic frameworks, catalysis, photocatalysis, hydrogen production, CO2 capture, waste-to-material conversion.
+
+===PROFILE===
+NAME: anirban roy
+DESIGNATION: Associate Professor. PhD: IIT Kharagpur.
+RESEARCH: Membrane separation, water treatment, thermodynamics, water-energy systems, biomedical devices.
+
+===PROFILE===
+NAME: vivek r
+DESIGNATION: Associate Professor. PhD: IIT Kharagpur.
+RESEARCH: Biosurfactants, enzymes for sugar production, fermentation processes, biopolymers.
+
+===PROFILE===
+NAME: jegatha 
+DESIGNATION: Associate Professor. PhD: KIST-UST, South Korea.
+RESEARCH: Bio-MEMS, microfluidics, nanomaterial sensors, fuel cells, hydrogen technology.
+
+===PROFILE===
+NAME: Rricha segel
+DESIGNATION: Associate Professor. PhD: Drexel University, USA.
+RESEARCH: Nanomaterials synthesis, electrospinning, energy storage, supercapacitors, batteries, electrocatalysis, renewable energy.
+
+===PROFILE===
+NAME: pradeep kumar sow
+DESIGNATION: Associate Professor. PhD: IIT Delhi.
+RESEARCH: Hydrogen energy, wettability diagnostics, smart materials.
+
+===PROFILE===
+NAME: amol deshpande
+DESIGNATION: Assistant Professor. PhD: BITS Pilani.
+RESEARCH: Unmixed combustion, heat transfer, CFD, reaction engineering, modeling.
+
+===PROFILE===
+NAME: asima saukat
+DESIGNATION: Assistant Professor. PhD: IIT Kanpur.
+RESEARCH: Polymer nanocomposites, graphene materials, rheology, tribology, transport phenomena.
+
+===PROFILE===
+NAME: paramita harbar
+DESIGNATION: Assistant Professor. PhD: IIT Bombay.
+RESEARCH: Molecular simulations, DFT, MD, Monte Carlo, molecular docking, NEB methods.
+
+===PROFILE===
+NAME: riju de
+DESIGNATION: Assistant Professor. PhD: IIT Bombay.
+RESEARCH: Process systems engineering, optimization (multi-objective, stochastic), machine learning, experimental design.
+
+===PROFILE===
+NAME: sundari 
+DESIGNATION: Assistant Professor. PhD: IIT Madras.
+RESEARCH: Transport phenomena, multiphase flows, microfluidics, CFD, systems biology.
+
+===PROFILE===
+NAME: mrunali gayante
+DESIGNATION: Assistant Professor. PhD: IIT Hyderabad.
+RESEARCH: Functionalized nanomaterials for agriculture, healthcare, environmental applications.
+
+===PROFILE===
+NAME: UPASANA MAHANTA
+DESIGNATION: Assistant Professor. PhD: IIT Guwahati.
+RESEARCH: Non-aqueous solvents, thermodynamics, electrochemical energy storage, molecular dynamics.
+
+===PROFILE===
+NAME: Saurabh prabhakr
+DESIGNATION: Assistant Professor. PhD: ICT Mumbai.
+RESEARCH: Waste management, green chemistry, catalysis, sustainable engineering.
+
+===PROFILE===
+NAME: jayita chopra
+DESIGNATION: Visiting Faculty. PhD: IIT Kharagpur.
+RESEARCH: Bioprocess optimization, biofuel production, hydrothermal liquefaction, life cycle assessment.
+
+===PROFILE===
+NAME: samay ranish
+DESIGNATION: Assistant professor,PHD,IIT Kharagpur
+RESEARCH: NLP
+
+===PROFILE===
+NAME: jyotish rajwadi
+DESIGNATION: Assistant professor,PHD,IIT Kharagpur
+RESEARCH: IOT 
+
