@@ -1,0 +1,87 @@
+FORMAT:
+Each entry contains NAME, LOCATION, RESEARCH_STRENGTHS, and NOTES.
+Use this structure for retrieval.
+
+===UNIVERSITY===
+NAME: Indian Institute of Science (IISc), Bangalore
+LOCATION: Bangalore, India
+RESEARCH_STRENGTHS: Materials engineering, catalysis, computational science, chemical engineering, nanotechnology, machine learning, robotics.
+NOTES: Consistently ranked India's top research institute; strong PhD pipeline and well-funded core research labs across engineering and science departments.
+
+===UNIVERSITY===
+NAME: Indian Institute of Technology Bombay (IIT Bombay)
+LOCATION: Mumbai, India
+RESEARCH_STRENGTHS: Process systems engineering, molecular simulation, computer science and AI, energy systems, membrane separation.
+NOTES: Strong industry collaboration culture; large chemical engineering and CSE departments with active international co-authorship.
+
+===UNIVERSITY===
+NAME: Indian Institute of Technology Delhis (IIT Delhi)
+LOCATION: New Delhi, India
+RESEARCH_STRENGTHS: Hydrogen energy, surface science, artificial intelligence, data science, biomedical engineering.
+NOTES: Home to well-established AI and data science research groups alongside core engineering departments.
+
+===UNIVERSITY===
+NAME: Indian Institute of Technology Kharagpur (IIT Kharagpur)
+LOCATION: Kharagpur, India
+RESEARCH_STRENGTHS: Bio-MEMS, microfluidics, membrane separation, fuel cells, machine learning, cryptography.
+NOTES: One of the oldest and largest IITs, broad research base spanning chemical, biomedical, and computer science engineering.
+
+===UNIVERSITY===
+NAME: Indian Institute of Technology Madras (IIT Madras)
+LOCATION: Chennai, India
+RESEARCH_STRENGTHS: Transport phenomena, multiphase flows, computational fluid dynamics, robotics, data science.
+NOTES: Ranked consistently among India's top engineering institutes; strong industry-funded research centers.
+
+===UNIVERSITY===
+NAME:bitalani pilan
+LOCATION: Pilani, Goa, Hyderabad, India
+RESEARCH_STRENGTHS: Process intensification, biosurfactants, corrosion engineering, computational chemistry, embedded systems.
+NOTES: Strong emphasis on undergraduate research involvement; frequent industry partnerships for applied research projects.
+
+===UNIVERSITY===
+NAME: Massachusetts Institute of Technology (MIT)
+LOCATION: Cambridge, Massachusetts, USA
+RESEARCH_STRENGTHS: Artificial intelligence, robotics, materials science, chemical engineering, quantum computing.
+NOTES: Broad frontier research across nearly every engineering discipline; large open-access publication record via MIT OpenCourseWare and CSAIL.
+
+===UNIVERSITY===
+NAME: Stanford University
+LOCATION: Stanford, California, USA
+RESEARCH_STRENGTHS: Machine learning, natural language processing, computer vision, human-computer interaction, bioengineering.
+NOTES: Strong industry-academia pipeline into Silicon Valley; Stanford AI Lab and HAI are major hubs for applied AI research.
+
+===UNIVERSITY===
+NAME: Carnegie Mellon University (CMU)
+LOCATION: Pittsburgh, Pennsylvania, USA
+RESEARCH_STRENGTHS: Robotics, machine learning, natural language processing, software engineering, human-computer interaction.
+NOTES: School of Computer Science is considered one of the strongest globally for AI and robotics research specifically.
+
+===UNIVERSITY===
+NAME: University of Toronto
+LOCATION: Toronto, Canada
+RESEARCH_STRENGTHS: Deep learning, computer vision, reinforcement learning, chemical engineering, materials science.
+NOTES: Historic center of deep learning research; strong ties to Vector Institute for AI.
+
+===UNIVERSITY===
+NAME: ETH Zurich
+LOCATION: Zurich, Switzerland
+RESEARCH_STRENGTHS: Robotics, computational science, process engineering, materials science, machine learning.
+NOTES: Highly ranked for engineering research in Europe; strong funding for interdisciplinary robotics and AI labs.
+
+===UNIVERSITY===
+NAME: National University of Singapore (NUS)
+LOCATION: Singapore
+RESEARCH_STRENGTHS: Chemical engineering, nanotechnology, artificial intelligence, sustainable energy systems.
+NOTES: Leading research institute in Southeast Asia with strong government-backed research funding.
+
+===UNIVERSITY===
+NAME: University of Cambridge
+LOCATION: Cambridge, United Kingdom
+RESEARCH_STRENGTHS: Machine learning, chemical engineering, materials science, computational biology.
+NOTES: Long-standing strength in foundational science research alongside applied engineering programs.
+
+===UNIVERSITY===
+NAME: Tsinghua University
+LOCATION: Beijing, China
+RESEARCH_STRENGTHS: Artificial intelligence, chemical engineering, materials science, energy systems.
+NOTES: One of the largest and most well-funded research universities in Asia, strong output in applied AI and engineering.

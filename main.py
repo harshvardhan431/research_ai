@@ -17,47 +17,63 @@ from gemini_embedding_function import GeminiEmbeddingFunction
 # ---- CONFIG ----
 CHROMA_PATH = "./chroma_db"
 FACULTY_COLLECTION_NAME = "faculty"    # must match rag_setup_faculty.py
-PAPERS_COLLECTION_NAME = "papers"      # must match rag_setup_paper.py
+PAPERS_COLLECTION_NAME = "papers"  
+UNIVERSITY_COLLECTION_NAME = "university"    # must match rag_setup_papers.py
 
-# ✅ TUNED based on real debug_rag.py numbers:
-#   - genuine matches landed around 0.42-0.44
-#   - a totally unrelated query landed around 0.48
-# That's a narrow gap (embedding models often cluster everything closer
-# together than intuition suggests -- this is a known effect, not a bug).
-# 0.46 sits between the two. If Tavily still never triggers, tighten this
-# further (e.g. 0.44); if real matches start getting rejected, loosen it
-# slightly (e.g. 0.47). Re-test with debug_rag.py after any change.
-DISTANCE_THRESHOLD = 0.46
+# TUNED based on real debug_rag.py numbers (2026-07-09 run):
+#   - genuine matches landed around 0.50-0.51
+#   - irrelevant faculty/paper matches landed around 0.73-0.86
+# 0.60 sits comfortably in that gap. If real matches start getting
+# rejected, raise slightly (e.g. 0.65); if noise starts getting accepted,
+# lower it (e.g. 0.55). Re-test with debug_rag.py after any change.
+DISTANCE_THRESHOLD = 0.60
 
-# NOTE: double check this model name against Google's current model list.
-# "gemma-4-31b-it" does not match any known released Gemini/Gemma model as of
-# my last update -- likely typo for something like "gemini-1.5-flash" or
-# "gemini-2.0-flash". Fix this before running.
-MODEL_NAME = "gemma-4-31b-it"
+# FIXED: was "gemma-4-31b-it" (not a valid model string, caused crashes).
+MODEL_NAME = "gemini-2.5-flash"
 
 # ---- INIT ----
 load_dotenv()
 client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 tavily_client = TavilyClient(api_key=os.getenv("TAVILY_API_KEY"))
 
-chroma_client = chromadb.PersistentClient(path=CHROMA_PATH)
-# metadata={"hnsw:space": "cosine"} must match what the ingestion scripts
-# used to CREATE these collections. It only takes effect at creation time,
-# but keeping it here documents the requirement and is harmless if the
-# collection already exists.
+chroma_client = chromadb.PersistentClient(path="./chroma_db")
+
+# FIXED: embedding_function is now explicitly passed at collection fetch
+# time too (matching what rag_setup_*.py used at creation time). Not
+# strictly invoked here since queries pass raw embeddings manually below,
+# but specifying it avoids Chroma silently falling back to its default
+# local ONNX model if the collection's stored config is ever unavailable.
 faculty_collection = chroma_client.get_or_create_collection(
-    FACULTY_COLLECTION_NAME, metadata={"hnsw:space": "cosine"}
+    FACULTY_COLLECTION_NAME,
+    metadata={"hnsw:space": "cosine"},
+    embedding_function=GeminiEmbeddingFunction(task_type="RETRIEVAL_DOCUMENT"),
 )
 papers_collection = chroma_client.get_or_create_collection(
-    PAPERS_COLLECTION_NAME, metadata={"hnsw:space": "cosine"}
+    PAPERS_COLLECTION_NAME,
+    metadata={"hnsw:space": "cosine"},
+    embedding_function=GeminiEmbeddingFunction(task_type="RETRIEVAL_DOCUMENT"),
 )
+university_collection = chroma_client.get_or_create_collection(
+    UNIVERSITY_COLLECTION_NAME,
+    metadata={"hnsw:space": "cosine"},
+    embedding_function=GeminiEmbeddingFunction(task_type="RETRIEVAL_DOCUMENT"),
+)
+# Separate instance with RETRIEVAL_QUERY -- asymmetric embeddings improve
+# retrieval quality (documents and queries are embedded slightly differently
+# by design in Gemini's embedding model).
 embedding_fn = GeminiEmbeddingFunction(task_type="RETRIEVAL_QUERY")
 
 
 # NOTE: Ingestion is handled separately:
 #   python rag_setup_faculty.py   -> populates "faculty" collection
-#   python rag_setup_paper.py     -> populates "papers" collection
+#   python rag_setup_papers.py    -> populates "papers" collection
 # Run both once (or whenever the source .txt files change) BEFORE starting this app.
+# IMPORTANT: if you already ingested data before this task_type fix, delete
+# chroma_db/ and re-run both ingestion scripts -- embeddings generated
+# without an explicit task_type are not guaranteed to match ones generated
+# with RETRIEVAL_DOCUMENT, and mismatched embeddings silently degrade
+# retrieval quality instead of erroring.
+
 
 # ---- RETRIEVAL: GENERIC (used for both collections) ----
 def retrieve_from_collection(collection, query, n=4):
@@ -86,7 +102,6 @@ def retrieve_from_collection(collection, query, n=4):
     if not relevant:
         return "", False, []
 
-    # sort best-match first across whichever collection we're querying
     relevant.sort(key=lambda x: x[2])
 
     context = "\n---\n".join(doc for doc, _, _ in relevant)
@@ -108,7 +123,6 @@ def retrieve_from_rag(query, n=4):
     )
 
     if faculty_found and papers_found:
-        # both matched -- combine, since the question might touch both
         combined = f"{faculty_context}\n---\n{papers_context}"
         return combined, True, faculty_sources + papers_sources, "faculty+papers"
 
@@ -166,9 +180,16 @@ def build_search_string(sq):
 
 # ---- SAFE LLM CALL ----
 def get_response(messages, retries=3):
+    # FIXED: was messages[-8:], which silently drops the seeded intake
+    # context (index 0-1) after 4 back-and-forth exchanges. Now the intake
+    # pair is always kept, plus the most recent 6 turns.
+    intake_pair = messages[:2]
+    recent = messages[2:][-6:]
+    trimmed = intake_pair + recent
+
     contents = [
         types.Content(role=m["role"], parts=[types.Part(text=m["content"])])
-        for m in messages[-8:]  # limit history sent to the model
+        for m in trimmed
     ]
 
     for i in range(retries):
@@ -198,13 +219,13 @@ if "loading" not in st.session_state:
 if faculty_collection.count() == 0 and papers_collection.count() == 0:
     st.warning(
         "Both 'faculty' and 'papers' collections are empty. Run "
-        "`python rag_setup_faculty.py` and `python rag_setup_paper.py` "
+        "`python rag_setup_faculty.py` and `python rag_setup_papers.py` "
         "to ingest your data first."
     )
 elif faculty_collection.count() == 0:
     st.info("'faculty' collection is empty — run `python rag_setup_faculty.py`.")
 elif papers_collection.count() == 0:
-    st.info("'papers' collection is empty — run `python rag_setup_paper.py`.")
+    st.info("'papers' collection is empty — run `python rag_setup_papers.py`.")
 
 st.title("🎓 Research Assistant Bot")
 
@@ -318,7 +339,7 @@ Answer using the context above and cite sources where relevant.
 
             st.chat_message("assistant").write(reply)
 
-            if source in ("faculty", "papers", "faculty+papers"):
+            if source in ("faculty", "papers", "faculty+papers","university"):
                 st.caption(f"📄 Answered from {source} — sources: {', '.join(sources)}")
             elif source == "tavily":
                 st.caption("🌐 Answered from web search (Tavily)")

@@ -11,17 +11,6 @@ onnxruntime dependency at all.
 Use this SAME embedding function object everywhere you create or query
 a collection (ingestion scripts AND app.py), or ChromaDB will complain
 about mismatched embedding dimensions.
-
-✅ IMPORTANT: gemini-embedding-001 supports a task_type parameter that
-meaningfully changes the embedding space depending on use case. Without
-it, retrieval quality is poor -- queries and their matching documents
-don't cluster together well, because the embedding isn't optimized for
-"is this query answered by this document" style matching.
-
-Use task_type="RETRIEVAL_DOCUMENT" when embedding documents (ingestion),
-and task_type="RETRIEVAL_QUERY" when embedding the user's question
-(retrieval). These are asymmetric on purpose -- a query and its best
-matching document are NOT expected to look identical, just related.
 """
 
 import os
@@ -31,21 +20,19 @@ from google.genai import types
 from chromadb import Documents, EmbeddingFunction, Embeddings
 
 load_dotenv()
-_client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 class GeminiEmbeddingFunction(EmbeddingFunction):
     def __init__(self, task_type: str = "RETRIEVAL_DOCUMENT"):
-        """
-        task_type: "RETRIEVAL_DOCUMENT" when embedding content to be stored
-                   and searched over (use this in ingestion scripts).
-                   "RETRIEVAL_QUERY" when embedding a user's question
-                   (use this in main.py at query time).
-        """
+        # RETRIEVAL_DOCUMENT for ingestion (indexing chunks),
+        # RETRIEVAL_QUERY for search-time queries.
+        # Using the matching type on each side improves retrieval quality --
+        # this is what Gemini's embedding model is designed for.
         self.task_type = task_type
 
     def __call__(self, input: Documents) -> Embeddings:
-        result = _client.models.embed_content(
+        result = client.models.embed_content(
             model="gemini-embedding-001",
             contents=input,
             config=types.EmbedContentConfig(task_type=self.task_type),

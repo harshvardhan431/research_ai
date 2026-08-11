@@ -1,113 +1,112 @@
+"""
+rag_setup_faculty.py
+Parses faculty_txt/faculty_profiles.txt using the ===PROFILE=== delimiter
+format (NAME: / DESIGNATION: / RESEARCH: per block), and ingests each
+professor as one chunk into a separate "faculty" collection in ChromaDB.
+
+Expected file format:
+
+    ===PROFILE===
+    NAME: sutapa roy rahmanan
+    DESIGNATION: Senior Professor. PhD: Jadavpur University.
+    RESEARCH: Nano-biomaterials for labeling and drug delivery, ...
+
+    ===PROFILE===
+    NAME: srinivas ramaswami
+    ...
+
+To add a new professor: add another ===PROFILE=== block with the same
+three fields, then re-run this script.
+"""
+
 import os
 import re
 import chromadb
 from gemini_embedding_function import GeminiEmbeddingFunction
 
-DATA_DIR = "faculty_txt"
+FACULTY_DIR = "faculty_txt"
 
 client = chromadb.PersistentClient(path="./chroma_db")
-
-embedding_fn = GeminiEmbeddingFunction(task_type="RETRIEVAL_DOCUMENT")
-
-# ✅ FIXED: no embedding_function passed here, since we embed manually below
-# and pass raw vectors to collection.add(). Passing it here too was a
-# conflict risk (it requires GeminiEmbeddingFunction to match Chroma's
-# exact interface, e.g. a name() method on newer versions).
-#
-# ✅ FIXED (root cause of "RAG never triggers"): Chroma defaults to L2
-# distance, which is unbounded and huge for high-dimensional, non-normalized
-# Gemini embeddings (3072-dim). That made every distance blow past any
-# sane threshold, so retrieval always looked "irrelevant" even for perfect
-# matches. Forcing cosine distance here keeps values in a predictable
-# 0 (identical) to 2 (opposite) range that a threshold can actually work with.
 collection = client.get_or_create_collection(
-    name="faculty",
-    metadata={"hnsw:space": "cosine"},
+    "faculty", embedding_function=GeminiEmbeddingFunction(task_type="RETRIEVAL_DOCUMENT")
 )
 
 
-def split_faculty_profiles(text):
+def parse_profiles(text):
     """
-    Splits text into individual professor profiles using the ===PROFILE===
-    delimiter. Each profile is expected to contain a "NAME: ..." field
-    somewhere in its text, which is extracted separately for metadata/IDs.
+    Splits text on ===PROFILE=== markers and extracts NAME/DESIGNATION/
+    RESEARCH fields from each block. Returns a list of dicts.
     """
-    # split on the literal delimiter, tolerating surrounding whitespace/newlines
-    raw_chunks = re.split(r"={2,}\s*PROFILE\s*={2,}", text, flags=re.IGNORECASE)
-
+    blocks = text.split("===PROFILE===")
     profiles = []
-    for chunk in raw_chunks:
-        chunk = chunk.strip()
-        if not chunk:
+
+    for block in blocks:
+        block = block.strip()
+        if not block:
             continue
 
-        # pull the name out of "NAME: <name> DESIGNATION: ..." (case-insensitive,
-        # stops at the next ALL-CAPS field label or end of line)
-        match = re.search(
-            r"NAME:\s*(.+?)\s*(?:DESIGNATION:|RESEARCH:|PHD:|$)",
-            chunk,
-            flags=re.IGNORECASE,
-        )
-        name = match.group(1).strip() if match else None
+        name_match = re.search(r"NAME:\s*(.+)", block)
+        designation_match = re.search(r"DESIGNATION:\s*(.+)", block)
+        research_match = re.search(r"RESEARCH:\s*(.+)", block, re.DOTALL)
 
-        if not name:
-            print(f"  Warning: couldn't extract a name from chunk, skipping: {chunk[:80]}...")
+        if not name_match:
+            # This is likely the FORMAT/instructions block at the top of
+            # the file, not an actual profile -- skip it.
             continue
 
-        profiles.append((name, chunk))
+        name = name_match.group(1).strip()
+        designation = designation_match.group(1).strip() if designation_match else ""
+        research = research_match.group(1).strip() if research_match else ""
+
+        # Include the name explicitly in the chunk text (not just as
+        # metadata), so a query like "tell me about Dr. X" retrieves
+        # correctly on the name itself, not just the research keywords.
+        full_text = f"{name}\n{designation}\n{research}"
+
+        profiles.append({
+            "name": name,
+            "designation": designation,
+            "research": research,
+            "text": full_text,
+        })
 
     return profiles
 
 
 def ingest():
-    if not os.path.isdir(DATA_DIR):
-        print("faculty_txt folder missing")
+    if not os.path.isdir(FACULTY_DIR):
+        print(f"Folder '{FACULTY_DIR}' not found. Create it and add faculty_profiles.txt first.")
         return
 
-    total = 0
-
-    for file in os.listdir(DATA_DIR):
-        if not file.endswith(".txt"):
+    total_chunks = 0
+    for filename in os.listdir(FACULTY_DIR):
+        if not filename.endswith(".txt"):
             continue
 
-        with open(os.path.join(DATA_DIR, file), "r", encoding="utf-8") as f:
+        path = os.path.join(FACULTY_DIR, filename)
+        with open(path, "r", encoding="utf-8") as f:
             text = f.read()
 
-        profiles = split_faculty_profiles(text)
+        profiles = parse_profiles(text)
+        file_id = filename.replace(".txt", "")
 
-        documents = []
-        ids = []
-        metadatas = []
+        for profile in profiles:
+            safe_id = re.sub(r"[^a-zA-Z0-9]+", "_", profile["name"]).strip("_").lower()
 
-        for i, (name, content) in enumerate(profiles):
-            doc = f"FACULTY PROFILE\n{content}"
+            collection.add(
+                documents=[profile["text"]],
+                ids=[f"{file_id}_{safe_id}"],
+                metadatas=[{
+                    "name": profile["name"],
+                    "designation": profile["designation"],
+                    "file": filename,
+                }],
+            )
+            total_chunks += 1
 
-            documents.append(doc)
-            ids.append(f"{file}_{name}_{i}")
-            metadatas.append({
-                "source": name,   # NOTE: matches the "source" key main.py expects
-                "name": name,
-                "file": file
-            })
+        print(f"Ingested {filename} -- {len(profiles)} faculty profiles")
 
-        if not documents:
-            print(f"{file}: 0 profiles added")
-            continue
-
-        # ✅ embed manually (no conflict with collection's embedding function)
-        embeddings = embedding_fn(documents)
-
-        collection.add(
-            documents=documents,
-            embeddings=embeddings,
-            ids=ids,
-            metadatas=metadatas
-        )
-
-        total += len(documents)
-        print(f"{file}: {len(documents)} profiles added")
-
-    print(f"\nTotal faculty profiles: {total}")
+    print(f"\nTotal faculty profiles ingested: {total_chunks}")
 
 
 if __name__ == "__main__":
