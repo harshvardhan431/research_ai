@@ -8,7 +8,7 @@ venv/
 .venv/
 
 # ChromaDB local data (regenerate via ingestion scripts, don't commit)
-chroma_db/
+
 
 # Streamlit
 .streamlit/
